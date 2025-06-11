@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>🧑‍🔬 Interaktives Versuchsprotokoll – Upload Edition</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #06b6d4;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8fafc;
+      --bg-tertiary: #f1f5f9;
+      --border: #e2e8f0;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+      --glass-bg: rgba(255, 255, 255, 0.25);
+      --glass-border: rgba(255, 255, 255, 0.18);
+    }
+
+    body { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+      margin: 0; min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 920px; margin: 2rem auto; 
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: var(--shadow-xl);
+      border-radius: 32px; 
+      padding: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .container::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+      pointer-events: none;
+    }
+    
+    .header {
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; font-weight: 700; 
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; letter-spacing: -0.02em;
+      gap: 1rem; margin-bottom: 2.5rem; position: relative;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .section-label {
+      display: flex; align-items: center; font-size: 1.125rem; 
+      color: var(--text-primary); font-weight: 600;
+      margin: 2rem 0 0.75rem 0;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+      backdrop-filter: blur(10px);
+      padding: 0.75rem 1.25rem; border-radius: 16px; gap: 0.75rem;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      box-shadow: var(--shadow-md);
+      width: fit-content;
+      transition: all 0.2s ease;
+    }
+    
+    .section-label:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .input, input, textarea { 
+      width: 100%; border: 2px solid var(--border); border-radius: 12px;
+      padding: 1rem 1.25rem; margin-top: 0.5rem; font-size: 1rem; 
+      background: var(--bg-primary);
+      transition: all 0.2s ease;
+      font-family: 'Inter', sans-serif;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .input:focus, input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      transform: translateY(-1px);
+    }
+    
+    textarea { 
+      min-height: 80px; resize: vertical; line-height: 1.6;
+    }
+    
+    /* Upload-Bereich */
+    .upload-card { 
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      margin: 1.5rem 0 2rem 0; 
+      box-shadow: var(--shadow-lg); 
+      padding: 2rem;
+      transition: all 0.3s ease;
+    }
+    
+    .upload-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-xl);
+    }
+    
+    .upload-area {
+      border: 2px dashed var(--primary); border-radius: 20px; padding: 3rem 2rem;
+      text-align: center; 
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+      cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+      position: relative; overflow: hidden;
+    }
+    
+    .upload-area::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+    }
+    
+    .upload-area:hover::before {
+      transform: translateX(100%);
+    }
+    
+    .upload-area:hover {
+      border-color: var(--primary-dark);
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+      transform: scale(1.02);
+    }
+    
+    .upload-area.dragover {
+      border-color: var(--success);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+      transform: scale(1.05);
+    }
+    
+    .upload-icon {
+      font-size: 4rem; color: var(--primary); margin-bottom: 1.5rem;
+      filter: drop-shadow(0 4px 8px rgba(99, 102, 241, 0.3));
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    .upload-text {
+      color: var(--text-primary); font-size: 1.25rem; margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+    
+    .upload-hint {
+      color: var(--text-muted); font-size: 1rem;
+    }
+    
+    .file-input {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      opacity: 0; cursor: pointer;
+    }
+    
+    /* Bild-Vorschau */
+    .image-preview {
+      margin-top: 1.5rem; text-align: center; display: none;
+    }
+    
+    .preview-image {
+      max-width: 100%; max-height: 450px; border-radius: 16px;
+      box-shadow: var(--shadow-xl); border: 1px solid var(--border);
+      transition: transform 0.3s ease;
+    }
+    
+    .preview-image:hover {
+      transform: scale(1.02);
+    }
+    
+    .image-info {
+      margin-top: 1rem; font-size: 1rem; color: var(--text-secondary);
+      font-weight: 500;
+    }
+    
+    .remove-image {
+      margin-top: 1rem; background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+      color: white; border: none; padding: 0.75rem 1.5rem; 
+      border-radius: 12px; cursor: pointer; font-size: 1rem;
+      font-weight: 600; transition: all 0.2s ease;
+      box-shadow: var(--shadow-md);
+    }
+    
+    .remove-image:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    }
+    
+    .export-btn {
+      background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 50%, #8b5cf6 100%);
+      color: #fff; font-weight: 700; border: none; border-radius: 16px; 
+      padding: 1.25rem 3rem; margin: 3rem 0 0 0; cursor: pointer; 
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-lg); font-size: 1.25rem;
+      position: relative; overflow: hidden;
+      letter-spacing: 0.025em;
+    }
+    
+    .export-btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+    }
+    
+    .export-btn:hover::before {
+      transform: translateX(100%);
+    }
+    
+    .export-btn:hover { 
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: var(--shadow-xl);
+      background: linear-gradient(135deg, #0891b2 0%, var(--primary-dark) 50%, #7c3aed 100%);
+    }
+    
+    .export-btn:active {
+      transform: translateY(-1px) scale(1.01);
+    }
+    
+    /* Floating Icon mit Text */
+    .chemikus-floating {
+      position: fixed;
+      right: 30px;
+      bottom: 24px;
+      z-index: 99;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      text-decoration: none;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 251, 235, 0.95) 100%);
+      backdrop-filter: blur(20px);
+      padding: 16px 24px;
+      border-radius: 50px;
+      box-shadow: var(--shadow-xl);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .chemikus-floating:hover, .chemikus-floating:focus {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 246, 210, 1) 100%);
+    }
+    
+    .chemikus-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      background: linear-gradient(135deg, #fffbea 0%, #fef3c7 100%);
+      transition: all 0.3s ease;
+      object-fit: cover;
+    }
+    
+    .chemikus-floating:hover .chemikus-icon {
+      transform: rotate(-5deg) scale(1.1);
+      box-shadow: var(--shadow-xl);
+    }
+    
+    .chemikus-text {
+      font-size: 1.125rem;
+      background: linear-gradient(135deg, #92400e 0%, #d97706 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+    
+    /* WK-Logo unten links */
+    .wk-logo-bottomleft {
+      position: fixed;
+      left: 30px;
+      bottom: 24px;
+      width: 72px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      z-index: 100;
+      box-shadow: var(--shadow-xl);
+      pointer-events: none;
+      opacity: 0.9;
+      transition: all 0.3s ease;
+    }
+    
+    .wk-logo-bottomleft:hover {
+      transform: scale(1.05);
+      opacity: 1;
+    }
+    
+    @media (max-width: 768px) {
+      .container { 
+        margin: 1rem; padding: 1.5rem; border-radius: 24px;
+      }
+      .header {
+        font-size: 2rem;
+      }
+      .upload-area { 
+        padding: 2rem 1rem; 
+      }
+      .upload-icon { 
+        font-size: 3rem; 
+      }
+      .chemikus-floating {
+        padding: 12px 16px;
+        border-radius: 40px;
+        right: 16px;
+        bottom: 16px;
+        gap: 12px;
+      }
+      .chemikus-icon { 
+        width: 48px; 
+        height: 48px; 
+        border-radius: 14px; 
+      }
+      .chemikus-text { 
+        font-size: 1rem;
+      }
+      .wk-logo-bottomleft { 
+        left: 16px; 
+        bottom: 16px; 
+        width: 56px; 
+        height: 36px;
+        border-radius: 12px;
+      }
+      .export-btn {
+        padding: 1rem 2rem;
+        font-size: 1.125rem;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .section-label {
+        font-size: 1rem;
+        padding: 0.625rem 1rem;
+        margin: 1.5rem 0 0.5rem 0;
+      }
+      .input, input, textarea {
+        padding: 0.875rem 1rem;
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span>🧑‍🔬</span> Interaktives Versuchsprotokoll <span>🔬</span>
+    </div>
+    <form id="protocolForm">
+      <div class="section-label"><span>👤</span>Name:</div>
+      <input class="input" type="text" id="name" name="name" autocomplete="off">
+
+      <div class="section-label"><span>📅</span>Datum:</div>
+      <input class="input" type="date" id="date" name="date">
+
+      <div class="section-label"><span>❓</span>Versuchsfrage:</div>
+      <input class="input" type="text" id="question" name="question" autocomplete="off">
+
+      <div class="section-label"><span>🧪</span>Material:</div>
+      <textarea class="input" id="material" name="material" rows="3"></textarea>
+
+      <div class="section-label"><span>⚠️</span>Sicherheitsmaßnahmen:</div>
+      <textarea class="input" id="safety" name="safety" rows="3"></textarea>
+
+      <div class="section-label">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="margin-right:2px;vertical-align:-3px;">
+          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" stroke="#6366f1" stroke-width="2"/>
+          <polyline points="14,2 14,8 20,8" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Versuchsaufbau (Bild hochladen):
+      </div>
+      <div class="upload-card">
+        <div class="upload-area" id="uploadArea">
+          <input type="file" id="imageUpload" class="file-input" accept="image/*">
+          <div class="upload-icon">📁</div>
+          <div class="upload-text">Klicken Sie hier oder ziehen Sie ein Bild hierher</div>
+          <div class="upload-hint">Unterstützte Formate: JPG, PNG, GIF (max. 10MB)</div>
+        </div>
+        <div class="image-preview" id="imagePreview">
+          <img id="previewImage" class="preview-image" alt="Versuchsaufbau">
+          <div class="image-info" id="imageInfo"></div>
+          <button type="button" class="remove-image" id="removeImage">Bild entfernen</button>
+        </div>
+      </div>
+
+      <div class="section-label"><span>📋</span>Versuchsanleitung:</div>
+      <textarea id="instructions" name="instructions"></textarea>
+      
+      <div class="section-label"><span>👀</span>Beobachtungen:</div>
+      <textarea id="observation" name="observation"></textarea>
+      
+      <div class="section-label"><span>💡</span>Ergebnis/Auswertung:</div>
+      <textarea id="result" name="result"></textarea>
+      
+      <button class="export-btn" type="button" onclick="exportPDF()">Alles als PDF exportieren</button>
+    </form>
+  </div>
+  
+  <!-- Floating Professor Chemikus Icon + Text -->
+  <a
+    href="https://chatgpt.com/g/g-6841ce4370bc8191a07dee61cebf4055-professor-chemikus"
+    class="chemikus-floating"
+    target="_blank"
+    title="Frag Professor Chemikus – jetzt chatten!"
+    aria-label="Frag Professor Chemikus"
+  >
+    <span class="chemikus-text">Frag den Professor!</span>
+    <img
+      src="e7012df7-61bb-40e0-8373-4427e9e2bd91.png"
+      class="chemikus-icon"
+      alt="Professor Chemikus – Zum Chat-Assistenten"
+    />
+  </a>
+  
+  <!-- WK-Logo -->
+  <img
+    src="A_digital_graphic_design_logo_features_a_dark_back.png"
+    alt="WK Neon Logo"
+    class="wk-logo-bottomleft"
+  />
+
+  <script>
+    // Image Upload Funktionalität
+    let uploadedImage = null;
+    let uploadedImageName = '';
+
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('imageUpload');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImage = document.getElementById('previewImage');
+    const imageInfo = document.getElementById('imageInfo');
+    const removeButton = document.getElementById('removeImage');
+
+    // Click-Event für Upload-Bereich
+    uploadArea.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    // Drag & Drop Events
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFileUpload(files[0]);
+      }
+    });
+
+    // File Input Change Event
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleFileUpload(e.target.files[0]);
+      }
+    });
+
+    // Remove Image Event
+    removeButton.addEventListener('click', () => {
+      uploadedImage = null;
+      uploadedImageName = '';
+      imagePreview.style.display = 'none';
+      fileInput.value = '';
+    });
+
+    function handleFileUpload(file) {
+      // Datei-Validierung
+      if (!file.type.startsWith('image/')) {
+        alert('Bitte wählen Sie eine Bilddatei aus.');
+        return;
+      }
+
+      if (file.size > 10 * 1024 * 1024) { // 10MB Limit
+        alert('Die Datei ist zu groß. Maximale Größe: 10MB');
+        return;
+      }
+
+      uploadedImageName = file.name;
+
+      // FileReader zum Laden des Bildes
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        uploadedImage = e.target.result;
+        previewImage.src = uploadedImage;
+        
+        // Datei-Info anzeigen
+        const fileSize = (file.size / 1024).toFixed(1);
+        imageInfo.textContent = `${file.name} (${fileSize} KB)`;
+        
+        // Vorschau anzeigen
+        imagePreview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // PDF-Export
+    function exportPDF() {
+      const jsPDF = window.jspdf?.jsPDF || window.jspdf;
+      if (!jsPDF) {
+        alert("jsPDF konnte nicht geladen werden!");
+        return;
+      }
+
+      const doc = new jsPDF({orientation:'portrait',unit:'px',format:'a4'});
+      const f = document.getElementById('protocolForm');
+      let x = 32, y = 32, line = 22, maxW = 540;
+
+      function drawField(title, val) {
+        doc.setFont('helvetica','bold'); 
+        doc.setFontSize(13);
+        doc.text(title, x, y); 
+        y += line - 7;
+        doc.setFont('helvetica','normal'); 
+        doc.setFontSize(12);
+        let lines = doc.splitTextToSize(val || ' ', maxW);
+        doc.text(lines, x + 15, y);
+        y += lines.length * line - 10;
+      }
+
+      drawField('1. Name:', f.name.value);
+      drawField('Datum:', f.date.value);
+      drawField('2. Versuchsfrage:', f.question.value);
+      drawField('3. Material:', f.material.value);
+      drawField('4. Sicherheitsmaßnahmen:', f.safety.value);
+
+      doc.setFont('helvetica','bold');
+      doc.text('5. Versuchsaufbau:', x, y + 8);
+      y += 14;
+
+      // Hochgeladenes Bild einbinden
+      if (uploadedImage) {
+        try {
+          // Bild-Dimensionen berechnen (proportional skaliert)
+          const img = new Image();
+          img.onload = function() {
+            const maxWidth = 340;
+            const maxHeight = 200;
+            let width = this.width;
+            let height = this.height;
+            
+            // Proportional skalieren
+            if (width > maxWidth || height > maxHeight) {
+              const ratio = Math.min(maxWidth / width, maxHeight / height);
+              width *= ratio;
+              height *= ratio;
+            }
+            
+            doc.addImage(uploadedImage, 'JPEG', x + 5, y, width, height, undefined, 'FAST');
+            
+            // Y-Position nach dem Bild anpassen
+            y += height + 20;
+            
+            // Restliche Felder hinzufügen
+            drawField('6. Versuchsanleitung:', f.instructions.value);
+            drawField('7. Beobachtungen:', f.observation.value);
+            drawField('8. Ergebnis/Auswertung:', f.result.value);
+            
+            doc.save('Versuchsprotokoll.pdf');
+          };
+          img.src = uploadedImage;
+        } catch (error) {
+          console.error('Fehler beim Einbinden des Bildes:', error);
+          // Fallback: PDF ohne Bild erstellen
+          y += 40;
+          drawField('6. Versuchsanleitung:', f.instructions.value);
+          drawField('7. Beobachtungen:', f.observation.value);
+          drawField('8. Ergebnis/Auswertung:', f.result.value);
+          doc.save('Versuchsprotokoll.pdf');
+        }
+      } else {
+        // Kein Bild hochgeladen - Platzhalter
+        doc.setFont('helvetica','italic');
+        doc.setFontSize(11);
+        doc.text('(Kein Bild hochgeladen)', x + 15, y);
+        y += 40;
+        
+        drawField('6. Versuchsanleitung:', f.instructions.value);
+        drawField('7. Beobachtungen:', f.observation.value);
+        drawField('8. Ergebnis/Auswertung:', f.result.value);
+        
+        doc.save('Versuchsprotokoll.pdf');
+      }
+    }
+
+    window.exportPDF = exportPDF;
+  </script>
+</body>
+</html>
