@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Schülerdetail | Versuchsprotokoll{% endblock %}
+{% block head %}
+  <script defer src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script defer src="{{ url_for('static', filename='js/detail.js') }}"></script>
+{% endblock %}
+{% block body %}
+<main class="teacher-shell" data-page="detail" data-schueler-id="{{ snapshot.student.id }}" data-action-token="{{ action_token }}">
+  <header class="ws-header">
+    <img src="{{ url_for('static', filename='img/logo-gsm-transparent.png') }}" alt="GSM" class="logo-gsm">
+    <div>
+      <h1>{{ snapshot.student.pseudonym }}</h1>
+      <p>{{ snapshot.student.kurs }} | Detailansicht</p>
+    </div>
+    <div class="header-actions">
+      <a class="btn accent" href="{{ url_for('export_student_pdf', sid=snapshot.student.id) }}">Fertiges Protokoll exportieren</a>
+      <a class="btn outline light" href="{{ url_for('dashboard') }}">Dashboard</a>
+    </div>
+  </header>
+
+  <section class="teacher-section">
+    <h2>Antwort-Protokoll</h2>
+    <div id="answerLog" class="log-list"></div>
+  </section>
+
+  <section class="teacher-section">
+    <h2>KI-Chat</h2>
+    <div id="chatLogTeacher" class="log-list"></div>
+  </section>
+
+  <section class="teacher-section">
+    <h2>KI-Anfragen</h2>
+    <div id="requestLog" class="request-list"></div>
+  </section>
+</main>
+
+<script id="detail-data" type="application/json">{{ snapshot|tojson }}</script>
+{% endblock %}

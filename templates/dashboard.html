@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | Versuchsprotokoll{% endblock %}
+{% block head %}
+  <script defer src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script defer src="{{ url_for('static', filename='js/teacher.js') }}"></script>
+{% endblock %}
+{% block body %}
+<main class="teacher-shell" data-page="dashboard" data-action-token="{{ action_token }}">
+  <header class="ws-header">
+    <img src="{{ url_for('static', filename='img/logo-gsm-transparent.png') }}" alt="GSM" class="logo-gsm">
+    <div>
+      <h1>Lehrer-Dashboard</h1>
+      <p>Live-Übersicht, KI-Freigaben und Token-Limit</p>
+    </div>
+    <form method="post" action="{{ url_for('lehrer_logout') }}">
+      <button class="btn outline light" type="submit">Logout</button>
+    </form>
+  </header>
+
+  <section class="dashboard-grid">
+    <article class="metric-card">
+      <span>Schüler</span>
+      <strong id="studentCount">{{ snapshot.students|length }}</strong>
+    </article>
+    <article class="metric-card">
+      <span>Token heute</span>
+      <strong id="tokenCount">{{ snapshot.usage.today }}/{{ snapshot.usage.limit }}</strong>
+    </article>
+    <article class="metric-card warn">
+      <span>Offene Freigaben</span>
+      <strong id="pendingCount">{{ snapshot.requests|selectattr("status", "equalto", "pending")|list|length }}</strong>
+    </article>
+  </section>
+
+  <section class="teacher-section">
+    <div class="section-title">
+      <h2>KI-Freigaben</h2>
+    </div>
+    <div id="requestList" class="request-list"></div>
+  </section>
+
+  <section class="teacher-section">
+    <div class="section-title">
+      <h2>Schüler</h2>
+      <button class="btn danger" type="button" id="resetClassroom">Alle Aktivitäten löschen</button>
+    </div>
+    <div id="studentList" class="student-list"></div>
+  </section>
+</main>
+
+<script id="snapshot-data" type="application/json">{{ snapshot|tojson }}</script>
+{% endblock %}

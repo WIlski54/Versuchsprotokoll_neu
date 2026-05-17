@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Lehrerbereich | Versuchsprotokoll{% endblock %}
+{% block body %}
+<main class="login-page">
+  <section class="login-card narrow">
+    <div class="brand-line">
+      <img src="{{ url_for('static', filename='img/wk-logo.png') }}" alt="WK" class="login-logo">
+      <div>
+        <h1>Lehrerbereich</h1>
+        <p>Dashboard und KI-Freigaben</p>
+      </div>
+    </div>
+    {% if error %}<div class="alert danger">{{ error }}</div>{% endif %}
+    <form method="post" class="stack">
+      <label for="password">Passwort</label>
+      <input id="password" name="password" type="password" required>
+      <button class="btn primary" type="submit">Einloggen</button>
+    </form>
+    <a href="{{ url_for('login') }}" class="teacher-link">Zurück zum Schülerlogin</a>
+  </section>
+</main>
+{% endblock %}

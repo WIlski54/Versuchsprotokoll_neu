@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Arbeitsblatt | Versuchsprotokoll{% endblock %}
+{% block head %}
+  <script defer src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      startup: { typeset: false }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endblock %}
+{% block body %}
+<main class="workspace" data-page="student">
+  <header class="ws-header">
+    <img src="{{ url_for('static', filename='img/logo-gsm-transparent.png') }}" alt="GSM" class="logo-gsm">
+    <div>
+      <h1>Interaktives Versuchsprotokoll</h1>
+      <p>{{ schueler.pseudonym }} | {{ schueler.kurs }}</p>
+    </div>
+    <img src="{{ url_for('static', filename='img/wk-logo.png') }}" alt="WK" class="logo-wk">
+  </header>
+
+  <section class="progress-card">
+    <div>
+      <strong>Fortschritt</strong>
+      <span id="progressText">0/{{ tasks|length }} Felder gespeichert</span>
+    </div>
+    <div class="progress-track"><div id="progressBar"></div></div>
+    <form method="post" action="{{ url_for('logout') }}">
+      <button class="btn outline small" type="submit">Abmelden</button>
+    </form>
+  </section>
+
+  <section class="single-tab">Arbeitsblatt</section>
+
+  <section class="protocol-grid" id="protocolForm">
+    {% for task in tasks %}
+    <article class="task-card" data-task="{{ task.id }}">
+      <div class="task-head">
+        <div>
+          <span class="task-number">{{ loop.index }}</span>
+          <h2>{{ task.title }}</h2>
+        </div>
+      </div>
+
+      <p class="hint">{{ protocol_hint(task.id) }}</p>
+      <textarea data-answer placeholder="Schreibe hier deinen Eintrag."></textarea>
+
+      {% if task.id == 'setup' %}
+      <div class="upload-panel">
+        <input id="setupImage" type="file" accept="image/png,image/jpeg">
+        <img id="setupPreview" alt="Bildvorschau Versuchsaufbau" hidden>
+      </div>
+      {% endif %}
+
+      <div class="task-actions">
+        <button class="btn primary" type="button" onclick="saveTask(this)">Speichern</button>
+        <span class="save-state" aria-live="polite"></span>
+      </div>
+    </article>
+    {% endfor %}
+  </section>
+
+  <section class="export-row">
+    <p>Deine Lehrkraft kann das fertige Protokoll nach dem Speichern als PDF exportieren.</p>
+  </section>
+</main>
+
+<aside class="ki-panel" id="kiPanel">
+  <div class="ki-head">
+    <img src="{{ url_for('static', filename='img/tutor-avatar.png') }}" alt="KI-Tutor">
+    <div>
+      <strong>KI-Tutor</strong>
+      <span id="kiStatus">Freigabe nötig</span>
+    </div>
+  </div>
+  <div class="chat-log" id="chatLog">
+    <div class="msg assistant">Schreibe deine Frage und klicke zuerst auf „Freigabe anfragen“.</div>
+  </div>
+  <textarea id="chatInput" placeholder="Deine Frage an den KI-Tutor"></textarea>
+  <div class="ki-actions">
+    <button class="btn outline" type="button" id="requestKi">Freigabe anfragen</button>
+    <button class="btn primary" type="button" id="sendKi" disabled>Senden</button>
+  </div>
+</aside>
+{% endblock %}

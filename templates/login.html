@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Login | Versuchsprotokoll{% endblock %}
+{% block body %}
+<main class="login-page">
+  <section class="login-card">
+    <div class="brand-line">
+      <img src="{{ url_for('static', filename='img/logo-gsm-transparent.png') }}" alt="GSM" class="login-logo">
+      <div>
+        <h1>Interaktives Versuchsprotokoll</h1>
+        <p>Chemie/Naturwissenschaften | digitales Arbeitsblatt</p>
+      </div>
+    </div>
+
+    {% if error %}<div class="alert danger">{{ error }}</div>{% endif %}
+
+    <form method="post" class="stack">
+      <label for="pseudonym">Pseudonym</label>
+      <input id="pseudonym" name="pseudonym" autocomplete="off" maxlength="40" placeholder="z. B. Laborstern42" required>
+
+      <label for="kurs">Kurs oder Klasse</label>
+      <input id="kurs" name="kurs" autocomplete="off" maxlength="40" placeholder="z. B. 8b Chemie" required>
+
+      <section class="notice">
+        <h2>Datenschutz- und KI-Hinweis</h2>
+        <p>Nutze nur ein Pseudonym. Deine Antworten, dein Fortschritt und KI-Chats sind für die Lehrkraft sichtbar. Die KI kann Fehler machen und ersetzt keine Bewertung durch die Lehrkraft.</p>
+        <details>
+          <summary>Langfassung anzeigen</summary>
+          <p>Gespeichert werden Pseudonym, Kurs, Antworten, Fortschritt, Zeitpunkte, KI-Freigaben und KI-Chats dieser Unterrichtssitzung. Gib keine echten Namen und keine sensiblen personenbezogenen Daten ein. Die Lehrkraft kann die Daten im Dashboard einsehen und alle Aktivitäten löschen. Der KI-Tutor nutzt generative KI; Antworten können unvollständig oder falsch sein. Du hast grundsätzlich Rechte auf Auskunft, Berichtigung und Löschung nach DSGVO. Dieser Hinweis ist eine schulische Transparenzvorlage und keine Rechtsberatung.</p>
+        </details>
+      </section>
+
+      <label class="check-row" for="consent">
+        <input type="checkbox" id="consent" name="consent" required>
+        <span>Ich habe den Datenschutz- und KI-Hinweis gelesen.</span>
+      </label>
+
+      <button class="btn primary" type="submit">Arbeitsblatt starten</button>
+    </form>
+
+    <a href="{{ url_for('lehrer_login') }}" class="teacher-link">Lehrerbereich</a>
+  </section>
+</main>
+{% endblock %}
